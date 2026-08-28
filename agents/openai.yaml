@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pixel X Tracking"
+  short_description: "Implemente tracking Pixel X confiável e completo"
+  default_prompt: "Use $pixel-x-tracking para implementar e validar o rastreamento completo deste site sem eventos duplicados."
