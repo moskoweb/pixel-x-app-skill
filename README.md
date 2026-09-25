@@ -1,6 +1,10 @@
-# Pixel X Tracking — skill exclusiva Pixel X App
+# Pixel X App — Advanced Paid Traffic Tracking
 
-Skill para agentes de IA instalarem o pixel Pixel X App e implementarem rastreamento nas páginas que o usuário solicitar, após analisar oferta, CTAs e jornada comercial com visão de marketing/marketplace.
+A **Pixel X App** é uma plataforma de rastreamento para acompanhar o comportamento e a navegação dos visitantes e os eventos dos seus funis de vendas. **Ainda não é cliente?** [Conheça a Pixel X App](https://pixelx.app/?src=Skill).
+
+Skill para **clientes da Pixel X App** implementarem, com o auxílio de agentes de IA, **rastreamento avançado em páginas de vendas, páginas de captura e demais tipos de funis de vendas**.
+
+A skill orienta a instalação do pixel Pixel X App, a análise das páginas solicitadas e a implementação de eventos nos pontos-chave da jornada, considerando a oferta, os CTAs e os objetivos comerciais de cada funil.
 
 ## O que entrega
 

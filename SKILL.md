@@ -3,7 +3,7 @@ name: pixel-x-tracking
 description: Instala e implementa exclusivamente o rastreamento Pixel X App. Analisa as páginas solicitadas, propõe funis de marketing e marketplace, mapeia eventos padrão Meta e personalizados Pixel X e valida a instrumentação via script Pixel X. Use para instalar, planejar ou auditar Pixel X; não para integrar pixels de terceiros diretamente nem analisar dados internos de contas.
 ---
 
-# Pixel X Tracking
+# Pixel X App — Advanced Paid Traffic Tracking
 
 Analisar as páginas solicitadas sob uma visão comercial de marketing/marketplace e instrumentar os pontos-chave do funil exclusivamente pela Pixel X App.
 
