@@ -26,6 +26,8 @@ Identificar páginas/rotas pedidas, framework e versão, router, ponto global de
 
 Descobrir o domínio Pixel X no snippet existente ou solicitá-lo; não usar automaticamente o domínio do site. Continuar o plano quando o domínio estiver pendente, sem declarar instalação concluída.
 
+Identificar restrições de pixel por página: sem seleção, usar o padrão de todos os pixels do painel; com seleção, configurar `pixels` no PageView (`'456'` ou `'123,456'`). IDs de pixel não são o domínio do projeto. Ver detalhes de instalação antes de implementar.
+
 ### 2. Analisar e propor o funil
 
 Ler [funis.md](references/funis.md) e [eventos_meta.md](references/eventos_meta.md). Escolher ou combinar os modelos conforme o negócio real. Tratar os modelos como propostas revisáveis, não jornadas obrigatoriamente lineares.
@@ -34,6 +36,8 @@ Entregar o plano antes da implementação:
 | Página/rota | Etapa | Elemento/ID | Evento e tipo | Gatilho de sucesso | content_name | Origem | Contagem | Status |
 |---|---|---|---|---|---|---|---|---|
 | / | Consideração | offer | ViewContent / padrão | Oferta visível | offer | JavaScript | uma vez/pageview | proposto |
+
+Registrar também o destino de pixels de cada página/rota: padrão (todos) ou IDs específicos, herdado pelos eventos da página.
 
 Explicar a decisão comercial que cada evento permite medir. Identificar etapas fora do domínio, sem confirmação ou sem acesso. Diferenciar proposto, implementado, testado localmente, verificado na Pixel X e pendente.
 Se o pedido for somente análise/sugestão, parar no plano; não editar o site.
@@ -54,7 +58,7 @@ Não inferir deduplicação automática entre fontes.
 
 Ler [implementation_patterns.md](references/implementation_patterns.md).
 Centralizar envio, espera limitada pelo SDK, erros, cancelamento e permissão de tracking.
-- PageView inicial: verificar o que o bootstrap envia antes de adicionar outro.
+- PageView inicial: verificar o que o bootstrap envia antes de adicionar outro; quando houver seleção de pixels, configurar o PageView conforme installation.md, coordenando ordem e duplicidade.
 - SPA: mudança real de rota cria novo pageview lógico e reinicia seções/timers.
 - ViewContent: escolher explicitamente a oferta principal; uma vez por pageview como convenção Pixel X, não alegar limitação universal Meta.
 - Content: seções secundárias; pular Hero por padrão e evitar contagem dupla da principal.

@@ -4,6 +4,7 @@ Usar quando solicitado um prompt, sem substituir execução pedida por texto gen
 
 > Use a skill pixel-x-tracking fornecida para analisar estas páginas: [rotas].
 > Objetivo comercial: [objetivo]. Domínio de projeto Pixel X: [host fornecido].
+> Destinos por página: [padrão: todos / rota → IDs]. Configure seleção global no PageView com pixels como string ('456' ou '123,456'); sem seleção, omita o campo. Siga installation.md para ordem, duplicidade e transições SPA.
 > Proponha um modelo de funil com evento, gatilho, conteúdo, origem, frequência e evidência.
 > Use os 17 eventos padrão e os seis personalizados do catálogo conforme ações reais, não todos indiscriminadamente.
 > Instrumente apenas após o escopo de implementação estar autorizado, exclusivamente com bootstrap Pixel X e window.pixel_x_app.send_event.

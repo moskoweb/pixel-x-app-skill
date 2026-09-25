@@ -3,7 +3,8 @@
 ## Adaptador único
 
 Criar trackPixelX(payload, options) integrado ao stack real, seguro em SSR.
-- Contrato mínimo: event_name, content_name, lead_name, lead_email, lead_phone.
+- Campos conhecidos: event_name (obrigatório), content_name, lead_name, lead_email, lead_phone; pixels opcional como string de IDs separados por vírgula. Preservar o campo quando informado; não converter para array/número nem injetar vazio quando ausente.
+- Seleção global por página: estabelecer pixels no PageView antes dos eventos dependentes, conforme [installation.md](installation.md). Associar a configuração ao escopo da rota e não deixar eventos pendentes herdarem destinos de outra página.
 - Verificar window e permissão de tracking antes da espera e imediatamente antes do envio, inclusive após revogação.
 - Aguardar typeof window.pixel_x_app?.send_event === 'function' com polling curto e timeout limitado (ex.: 4s). Cancelar polling no término/abort.
 - Usar Promise.resolve para retorno síncrono/assíncrono. Limitar também o tempo total da chamada; SDK carregado não implica promise resolvida.

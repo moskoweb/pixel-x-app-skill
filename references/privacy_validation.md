@@ -16,6 +16,9 @@ Executar build/lint/testes pertinentes e conferir:
 - SDK lento, ausente, rejeitando e pendurado não quebra navegação.
 - Revogação durante espera impede envio posterior; timeout não cria retry duplicado.
 - PageView inicial e de SPA sem duplicatas; timers/observers resetam no escopo certo.
+- Destinos por página: sem seleção → todos; '456' → só 456; '123,456' → só os dois, nunca 789. Conferir PageView e eventos subsequentes, inclusive automáticos.
+- SPA: testar restrita → outra seleção → padrão, voltar/avançar e eventos atrasados; não assumir reset por omissão nem vazamento permitido em falha.
+- Restrição inicial: comprovar que nenhum evento automático anterior à configuração atingiu pixels excluídos; sem evidência, registrar pendência.
 - ViewContent principal único e Content em secundárias, inclusive seções longas/mobile.
 - Formulário inválido/rejeitado não gera conversão; sucesso gera uma.
 - AddToWishlist não dispara em FAQ/menu; AddToCart não dispara em falha de carrinho.

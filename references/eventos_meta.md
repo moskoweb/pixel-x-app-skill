@@ -51,7 +51,7 @@ await window.pixel_x_app.send_event({
 });
 ```
 
-Usar somente event_name/content_name em eventos sem dados de lead necessários. Strings estáveis em inglês para IDs e conteúdo técnico; nomes de eventos são case-sensitive. Não incluir e-mail, telefone, parâmetros secretos ou termos livres no content_name.
+Usar event_name/content_name em eventos sem dados de lead necessários; para seleção de destino, o campo opcional pixels é uma string (ex.: '123,456'). Configurá-lo no PageView para selecionar pixels globalmente na página, conforme [installation.md](installation.md). Strings estáveis em inglês para IDs e conteúdo técnico; nomes de eventos são case-sensitive. Não incluir e-mail, telefone, parâmetros secretos ou termos livres no content_name.
 
 Não deduzir price, currency, order_id, event_id, métricas de receita ou deduplicação remota a partir do nome Purchase. Consultar contrato específico antes de enviar campos extras.
 

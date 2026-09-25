@@ -5,6 +5,7 @@ Skill para agentes de IA instalarem o pixel Pixel X App e implementarem rastream
 ## O que entrega
 
 - Instalação global do script oficial Pixel X, com domínio de projeto fornecido.
+- Seleção global de pixels por página pelo PageView: `pixels: '456'` ou `pixels: '123,456'`. Sem seleção, padrão de todos os pixels do painel. Ver [instalação](references/installation.md) para ordem e cuidados em SPA.
 - Análise das páginas e proposta técnica/comercial de funil.
 - Plano de eventos por rota, elemento, gatilho, origem e frequência.
 - Implementação via window.pixel_x_app.send_event, sem duplicar automações do painel.
