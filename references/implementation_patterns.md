@@ -1,281 +1,70 @@
-# Padrões de Implementação
+# Padrões técnicos
 
-## Índice
+## Adaptador único
 
-- Adaptador seguro
-- Política territorial
-- Formulário e redirect
-- CTAs explícitos
-- Seções por JavaScript
-- Tempo visível
-- Rotas SPA
-- Máscaras de telefone
+Criar trackPixelX(payload, options) integrado ao stack real, seguro em SSR.
+- Contrato mínimo: event_name, content_name, lead_name, lead_email, lead_phone.
+- Verificar window e permissão de tracking antes da espera e imediatamente antes do envio, inclusive após revogação.
+- Aguardar typeof window.pixel_x_app?.send_event === 'function' com polling curto e timeout limitado (ex.: 4s). Cancelar polling no término/abort.
+- Usar Promise.resolve para retorno síncrono/assíncrono. Limitar também o tempo total da chamada; SDK carregado não implica promise resolvida.
+- Capturar erro sem quebrar ação do usuário. Não logar payload/PII.
+- Não afirmar entrega só por ausência de exceção: retorno local indica chamada tentada/resolvida, não recebimento remoto.
+- Não fazer retry após timeout: envio pode ter ocorrido e a API não garante idempotência.
+- Não usar filas persistentes com PII. Eventos pendentes de rota devem carregar token da rota; descartá-los se mudarem de escopo antes do envio.
+- Uma chave local de contagem não é event_id remoto. Usar estados pendente/tentado por gatilho; documentar falhas sem reenvio cego.
 
-Adaptar os exemplos ao stack existente. Não copiar tipos ou infraestrutura que conflitem com padrões do projeto.
+## Navegação
 
-## Adaptador seguro
+Verificar PageView automático no load e navegação SPA antes de adicionar envio manual.
+Usar hook/evento do router real; não monkey-patch history indiscriminadamente.
+No commit da rota, descartar observers/timers e criar novo escopo. Diferenciar pathname de filtro, hash e parâmetros conforme plano. Sanitizar conteúdo; não transmitir queries sensíveis.
+Verificar como SDK captura contexto de rota; não inventar page_url ou função de atualização.
+Se a atualização de contexto não puder ser confirmada, reportar a limitação da instrumentação SPA.
+Tratar voltar/avançar, rotas repetidas e remount/StrictMode sem duplicidade.
 
-Centralizar as chamadas e limitar a espera pelo SDK:
+## Seções
 
-```ts
-type PixelXPayload = {
-  event_name: string;
-  content_name?: string;
-  lead_name?: string;
-  lead_email?: string;
-  lead_phone?: string;
-};
+Escolher primarySectionId explicitamente (ex.: offer). Pular hero e controles irrelevantes.
+Observar IDs selecionados no plano, não apenas todos os section[id].
+Verificar intersectionRatio >= limiar configurado, não só isIntersecting. Para seção maior que viewport, escolher alvo/sentinel visível representativo: 50% da seção pode ser impossível.
+Contar uma vez por seção/pageview; desconectar observer no cleanup.
+Não misturar conversão de painel com observer do mesmo gatilho.
 
-type PixelXSDK = {
-  send_event(payload: PixelXPayload): unknown | Promise<unknown>;
-  mask_load?(): unknown | Promise<unknown>;
-  mask_load_inter?(): unknown | Promise<unknown>;
-};
+## Ações comerciais
 
-declare global {
-  interface Window {
-    pixel_x_app?: PixelXSDK;
-  }
-}
+Usar handlers explícitos ou data-pxa-event/data-pxa-content estáticos em elementos aprovados.
+Não obter nome do evento de texto do botão/URL por regex.
+Adicionar ao carrinho/favoritos só após sucesso; link direto pode ser seleção de oferta conforme plano.
+Preservar Ctrl/Cmd-clique, abrir nova aba, botões disabled, teclado e navegação.
+Links externos podem descarregar o documento antes do envio; usar somente transporte documentado Pixel X e espera curta limitada quando apropriado. Não prometer entrega nem criar beacon para endpoint inventado.
 
-const SDK_TIMEOUT_MS = 4_000;
-const SDK_POLL_MS = 50;
+## Formulários e confirmações
 
-function waitForPixelX(timeoutMs = SDK_TIMEOUT_MS): Promise<PixelXSDK> {
-  if (typeof window === 'undefined') {
-    return Promise.reject(new Error('Pixel X is client-only'));
-  }
+Preservar handler e validação existentes. Enviar após resposta bem-sucedida.
+Lead, CompleteRegistration, SubmitApplication e Schedule têm significados distintos.
+Obter dados do estado/FormData; names estáveis e IDs únicos por formulário.
+Usar identidade real da submissão quando disponível para impedir dupla contagem; não usar PII como chave.
+Antes de redirect, limitar espera (ex.: 1200ms); cancelar espera pendente no adaptador e navegar em finally. Promise.race sozinha não cancela o trabalho perdedor.
+Tracking falho não impede sucesso do formulário.
 
-  if (window.pixel_x_app?.send_event) {
-    return Promise.resolve(window.pixel_x_app);
-  }
+## Tempo e vídeo
 
-  return new Promise((resolve, reject) => {
-    const startedAt = Date.now();
-    const timer = window.setInterval(() => {
-      if (window.pixel_x_app?.send_event) {
-        window.clearInterval(timer);
-        resolve(window.pixel_x_app);
-        return;
-      }
+TimeOnPage: 30/60/120 segundos de tempo visível por pageview. Contar deltas monotônicos reais, não número de ticks. Pausar oculto e limpar no cleanup.
+WatchVideo: marcos adequados à duração (ex.: 30/60/120s) e IDs de vídeo estáveis no content_name. Só acumular durante reprodução observável; pausar em pause, buffering, ended e página oculta. Seek não conta o trecho pulado; replay não repete marco já enviado naquele pageview.
+Em players externos, usar eventos públicos do player se disponíveis, sem instalar pixels de publicidade externos. Iframe opaco sem API → pendência, não simular vídeo assistido com timer.
+AdsClick: somente anúncio clicado e observável; não inferir clique de iframe cross-origin ou de visita com UTM.
 
-      if (Date.now() - startedAt >= timeoutMs) {
-        window.clearInterval(timer);
-        reject(new Error('Pixel X SDK timeout'));
-      }
-    }, SDK_POLL_MS);
-  });
-}
+## Assinatura, compra e pós-venda
 
-export async function trackPixelX(
-  payload: PixelXPayload,
-  isTrackingAllowed: () => boolean,
-): Promise<boolean> {
-  if (typeof window === 'undefined' || !isTrackingAllowed()) return false;
+Purchase/Subscribe/Donate/Refund/SubscribeCanceled exigem estado confirmado verificável.
+Visita direta/reload de página de sucesso não basta. Associar tentativa local a operação real e respeitar limites do SDK: dedupe em memória não protege entre dispositivos.
+Reembolso parcial precisa identidade de operação própria; não contar todo pedido como reembolsado total.
+Sem confirmação acessível pelo site/script Pixel X, deixar pendente. Não expandir para REST/webhooks/Meta CAPI. Handoff para integração oficial Pixel X separado, se necessário.
+Nunca enviar cartão ou dados sensíveis em AddPaymentInfo.
 
-  try {
-    const sdk = await waitForPixelX();
-    await Promise.resolve(sdk.send_event(payload));
-    return true;
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[Pixel X] event not sent', {
-        event_name: payload.event_name,
-        error,
-      });
-    }
-    return false;
-  }
-}
-```
+## Máscaras
 
-Não registrar o payload inteiro porque ele pode conter PII. Se o projeto não expuser `process.env.NODE_ENV`, usar o mecanismo de ambiente local.
-
-## Política territorial
-
-Usar `isTrackingAllowed` conforme o modo do projeto:
-
-- **Brasil — padrão:** retornar `true`; não criar banner ou CMP apenas para satisfazer a integração.
-- **União Europeia:** consultar a CMP/store real e retornar `true` somente após autorização aplicável.
-- **Regional:** usar o sinal territorial confiável já fornecido pelo servidor, CDN ou CMP.
-
-Exemplo Brasil:
-
-```ts
-const isPixelXTrackingAllowed = () => true;
-```
-
-Exemplo conceitual União Europeia — adaptar à CMP instalada:
-
-```ts
-const isPixelXTrackingAllowed = () => consentStore.allows('analytics');
-```
-
-Não inventar APIs de CMP nem instalar um banner artesanal automaticamente.
-
-No modo União Europeia, se o consentimento for revogado:
-
-- Parar novos eventos.
-- Cancelar timers e observers ligados ao tracking quando aplicável.
-- Seguir o processo oficial da Pixel X para revogação/remoção de cookies, se houver documentação disponível.
-
-## Formulário e redirect
-
-Disparar após a operação de negócio confirmar sucesso:
-
-```ts
-const sentSubmissions = new Set<string>();
-
-async function handleSuccessfulLead(
-  submissionId: string,
-  lead: { name?: string; email?: string; phone?: string },
-  navigate: () => void,
-) {
-  if (sentSubmissions.has(submissionId)) {
-    navigate();
-    return;
-  }
-  sentSubmissions.add(submissionId);
-
-  try {
-    await Promise.race([
-      trackPixelX(
-        {
-          event_name: 'Lead',
-          lead_name: lead.name,
-          lead_email: lead.email,
-          lead_phone: lead.phone,
-        },
-        isPixelXTrackingAllowed,
-      ),
-      new Promise((resolve) => window.setTimeout(resolve, 1_200)),
-    ]);
-  } finally {
-    navigate();
-  }
-}
-```
-
-Usar o ID imutável da submissão retornado pelo backend quando disponível. Não gerar deduplicação usando e-mail ou telefone.
-
-## CTAs explícitos
-
-Preferir atributos declarativos:
-
-```html
-<a
-  href="/checkout"
-  data-pxa-event="AddToCart"
-  data-pxa-content="Plano Pro"
->
-  Comprar Plano Pro
-</a>
-```
-
-Um listener delegado pode ler apenas elementos anotados:
-
-```ts
-function onTrackedClick(event: MouseEvent) {
-  const element = (event.target as Element | null)?.closest<HTMLElement>(
-    '[data-pxa-event][data-pxa-content]',
-  );
-  if (!element) return;
-
-  void trackPixelX(
-    {
-      event_name: element.dataset.pxaEvent!,
-      content_name: element.dataset.pxaContent!,
-    },
-    isPixelXTrackingAllowed,
-  );
-}
-```
-
-Adicionar e remover o listener no ciclo de vida do componente. Não anotar controles de interface sem valor comercial.
-
-## Seções por JavaScript
-
-Usar somente quando o plano definir origem JavaScript:
-
-```ts
-const primarySectionId = 'offer';
-const excludedSectionIds = new Set(['hero', 'footer']);
-const viewed = new Set<string>();
-
-const observer = new IntersectionObserver(
-  (entries) => {
-    for (const entry of entries) {
-      const id = (entry.target as HTMLElement).id;
-      if (!entry.isIntersecting || !id || viewed.has(id)) continue;
-      viewed.add(id);
-      observer.unobserve(entry.target);
-
-      void trackPixelX(
-        {
-          event_name: id === primarySectionId ? 'ViewContent' : 'Content',
-          content_name: id,
-        },
-        isPixelXTrackingAllowed,
-      );
-    }
-  },
-  { threshold: 0.5 },
-);
-
-document.querySelectorAll<HTMLElement>('section[id]').forEach((section) => {
-  if (!excludedSectionIds.has(section.id)) observer.observe(section);
-});
-```
-
-Criar `viewed` novamente a cada pageview SPA. Não configurar os mesmos elementos no painel.
-
-## Tempo visível
-
-Contar tempo somente com `document.visibilityState === 'visible'`. Uma estratégia robusta usa um intervalo de 1 segundo, acumula tempo visível e dispara cada marco uma vez. Limpar o intervalo e o conjunto de marcos em mudança de rota.
-
-Marcos padrão: 30, 60 e 120 segundos. Usar `TimeOnPage` apenas se confirmado na conta/documentação Pixel X.
-
-## Rotas SPA
-
-Reagir à API oficial do router instalado, não sobrescrever `history.pushState` se o framework expuser eventos ou hooks próprios.
-
-Regras:
-
-1. Guardar a rota inicial e não emitir um `PageView` manual para ela sem verificar o evento automático do snippet.
-2. Normalizar a rota removendo fragment e parâmetros sensíveis.
-3. Em mudança real de rota, cancelar observers/timers antigos e criar novo estado de pageview.
-4. Emitir `PageView` somente se confirmado como evento suportado e necessário.
-5. Não reinjetar o bootstrap remoto em cada rota.
-
-## Máscaras de telefone
-
-```html
-<div class="pxa_mask_phone">
-  <label for="phone">Telefone</label>
-  <input
-    id="phone"
-    name="phone"
-    type="text"
-    inputmode="tel"
-    autocomplete="tel"
-  />
-</div>
-```
-
-Depois que um popup montar o campo:
-
-```ts
-async function loadPhoneMask(international = false): Promise<boolean> {
-  try {
-    const sdk = await waitForPixelX();
-    const load = international ? sdk.mask_load_inter : sdk.mask_load;
-    if (!load) return false;
-    await Promise.resolve(load.call(sdk));
-    return true;
-  } catch {
-    return false;
-  }
-}
-```
-
-Não chamar a máscara antes que o elemento esteja no DOM.
+Classe pxa_mask_phone ou pxa_mask_phone_inter no pai do input, não no campo.
+Usar type="text", inputmode="tel", autocomplete="tel", id e name.
+Após montar popup/campo, aguardar SDK e invocar mask_load() ou mask_load_inter() preservando this, com timeout e erro isolado.
+Não instalar outra biblioteca de tracking para obter máscara.

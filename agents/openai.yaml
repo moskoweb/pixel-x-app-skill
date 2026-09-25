@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pixel X Tracking"
+  short_description: "Instala Pixel X e implementa funis de eventos"
+  default_prompt: "Use $pixel-x-tracking para analisar as páginas solicitadas e implementar exclusivamente o rastreamento e o funil de eventos via Pixel X App."

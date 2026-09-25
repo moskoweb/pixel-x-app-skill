@@ -1,58 +1,16 @@
-# Conversões no Painel Pixel X
+# Conversões de seção no painel
 
-Usar este fluxo quando o plano escolher `panel` como origem da visualização de seção.
+Selecionar painel OU JavaScript por comportamento. Não configurar ambos.
+Definir IDs HTML únicos em inglês/kebab-case, preservando âncoras públicas existentes.
 
-## Preparar os elementos
+As capturas fornecidas pelo produto usam plans e demo sem # no campo "Classe CSS / ID do Elemento / Seletor CSS".
+No painel:
+1. Escolher "Visualização de Elemento / Sessão".
+2. Informar ID sem # conforme esse contrato.
+3. Selecionar ViewContent para a principal ou Content para secundárias.
+4. Preencher Nome do Conteúdo estável.
+5. Validar frequência e recebimento; não supor contagem única por pageview sem testar configuração.
 
-Adicionar um ID HTML único por seção:
-
-```html
-<section id="plans">...</section>
-<section id="testimonials">...</section>
-```
-
-Convenções:
-
-- Inglês, kebab-case e sem caracteres especiais.
-- Valor do atributo HTML sem `#`.
-- Não renomear IDs públicos existentes sem verificar links e CSS.
-- Uma única seção principal recebe `ViewContent`.
-
-## Configurar a conversão
-
-No painel, criar uma conversão para cada seção aprovada:
-
-1. Selecionar o gatilho **Visualização de Elemento / Sessão**.
-2. Em **Classe CSS / ID do Elemento / Seletor CSS**, informar o ID sem `#`, por exemplo `plans`.
-3. Escolher o evento:
-   - `ViewContent` para a única seção principal.
-   - `Content` para seções secundárias.
-   - `Custom` com `ScrollTo` quando esse for o evento aprovado.
-4. Preencher **Nome do Conteúdo** com um nome estável, por exemplo `PLANS`.
-5. Salvar e validar em **Eventos ao vivo**.
-
-As capturas fornecidas na documentação mostram seletores `plans` e `demo`, ambos sem `#`. Se a interface do painel mudar, seguir o formato exibido no painel atual e atualizar esta referência.
-
-## Regra contra duplicidade
-
-Ao usar esta conversão:
-
-- Não observar a mesma seção com `IntersectionObserver` para enviar o mesmo evento.
-- Não anexar outro gatilho de visualização ao mesmo seletor.
-- Verificar se uma conversão anterior já usa o elemento.
-
-## Tabela de entrega
-
-| Seção | ID HTML | Seletor no painel | Evento | Origem |
-|---|---|---|---|---|
-| Planos | `plans` | `plans` | `ViewContent` | painel |
-| Depoimentos | `testimonials` | `testimonials` | `Content` | painel |
-
-## Validação
-
-Abrir a página em sessão de teste, rolar uma vez até cada seção e confirmar:
-
-- Um único evento.
-- Evento e conteúdo corretos.
-- Nenhum evento ao rolar novamente para a mesma seção, caso a conversão deva contar uma vez por pageview.
-- Nenhuma chamada JavaScript equivalente.
+ScrollTo pode permanecer em configuração legada aprovada; não é sugestão padrão para novas implementações.
+Entregar tabela Seção | ID HTML | valor painel | evento | content_name | frequência.
+Sem acesso, orientar o usuário e marcar pendente. Criar IDs não equivale a criar conversões.
